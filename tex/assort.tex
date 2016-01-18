@@ -1,0 +1,132 @@
+\documentclass[12pt,letterpaper,oneside]{memoir}
+
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage[urldate=iso8601,date=iso8601]{biblatex}
+\usepackage{color}
+\usepackage{datetime2}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage[zerostyle=b,scaled=0.85]{newtxtt}
+\usepackage{lipsum}
+\usepackage{url}
+
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\chapterstyle{section}
+% New Commands
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\email}[1]{\href{mailto:#1}{\code{<#1>}}}
+\newcommand{\person}[2]{#1 \email{#2}}
+\newcommand{\pharpend}{\person{Peter Robert Harpending}{u0284592@utah.edu}}
+\newcommand{\answergraph}[1]{\begin{center}\includegraphics[width=0.8\textwidth]{#1}\end{center}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\scomp}[2]{\left\{\; #1 \,\mid\, #2 \;\right\}}
+
+% New ``theorems''
+\theoremstyle{definition}
+\newtheorem{example}{Example}[section]
+
+% New Environments
+\newenvironment{cpn}
+  {\begin{flushleft}\hrulefill\par\setlength{\parskip}{2ex}}
+  {\par\hrulefill\end{flushleft}}
+\newenvironment{rclmath}
+  {\begin{equation}\begin{tabu}{rcl}}
+  {\end{tabu}\end{equation}}
+
+% Extraneous setup
+\DTMsetstyle{iso}
+\addbibresource{assort.bib}
+\nocite{*}
+
+% Listings
+\definecolor{mygreen}{rgb}{0.3,0.6,0.3}
+\definecolor{mygray}{rgb}{0.8,0.8,0.8}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\lstset{ %
+  % backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\footnotesize\ttfamily,     % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=false,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,                    % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  % keywordstyle=\color{blue},       % keyword style
+  % Actually, we are using Idris, but Haskell is close enough
+  % language=\null,                % the language of the code
+  % morekeywords={*,...},            % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\footnotesize\ttfamily,    % the style that is used for the line-numbers
+  rulecolor=\color{mygray},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  % stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  title=\lstname,                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+  caption=\lstname                  % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+
+% Actual document
+\begin{document}
+\title{Models of assortative mating with various parameterizations}
+\author{\pharpend}
+\date{\Today}
+\maketitle
+
+\tableofcontents
+
+\chapter{Introduction}
+
+In its most abstract sense, assortative mating is the idea that, given a pool
+$P$ of individuals, some quantifiable trait $t : P \to (0, 1)$, there is a function
+$$M : (P \to (0, 1)) \to P \to P \to (0, 1),$$ such that for any individual $I
+\in P$, the function $$M_t(I) : P \to (0, 1)$$ gives, for any individual
+$J \in P$, the probability that the individual $I$ will choose to mate with $J$
+based on the value $t(I)$. \cite{needed} Note that $$M_t : P \to P \to (0, 1)$$
+is not commutative. \cite{needed} That is, it is not necessarily the case that
+$$M_t(I, J) = M_t(J, I).$$ The commutative property may hold in some cases, but
+certainly not all.
+
+\subsection{Notation}
+
+We use Curried notation for function signatures. In the simplest form, we have
+$f : A \to B$, where $A$ and $B$ are sets. It is assumed the reader is familiar
+with undergraduate-level mathematical notions and notation. We will only explain
+where our notation deviates from standard notation.
+
+For functions that take multiple parameters, the standard notation is to use
+Cartesian products. For instance, $$f : (A \times B) \to C$$ takes an element
+from the set $A$, an element from the set $B$, and produces something from the
+set $C$. However, it is often notationally convenient to \emph{Curry} the
+type.
+
+\emph{Currying}\footnote{Currying is named after the mathematician Haskell
+  Curry. \cite{needed}} is the process of taking a function with type
+$$f : (A_1 \times A_2 \times \dots \times A_n) \to B,$$ and turning it into a
+chain of functions with type
+$$f : A_1 \to (A_2 \to (A_3 \to (\dots \to (A_n \to B))).$$ In the previous
+example, we would have $$f : A \to (B \to C).$$ So, $f(a)$, where $a \in A$ is a
+function whose type is $B \to C$. The result $f(a, b)$ is a function whose type
+is $C$, or, plainly, an element in $C$. If we have
+$$g : A \to (B \to (C \to D)),$$ then
+$$g(a) : B \to (C \to D), \text{ where } a \in A.$$ $$g(a, b) : C \to D, \text{
+  where } a \in A, b \in B.$$ The parentheses are right-associative by default,
+so $$h : A \to B \to C \to D \to E$$ is actually just shorthand for
+$$h : A \to (B \to (C \to (D \to E))).$$
+
+\printbibliography
+\end{document}
